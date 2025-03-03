@@ -1,0 +1,10 @@
+<div class="container mt-4">
+  <%= render 'carrier_login' %>
+
+  <% if @current_carrier %>
+    <%= render 'new_bid_form' %>
+    <%= render 'current_carrier_bids' %>
+  <% end %>
+
+  <%= render 'all_bids' %>
+</div>

@@ -1,0 +1,55 @@
+<!-- Bid Form -->
+<div class="card mb-4">
+  <div class="card-header bg-primary text-white">
+    <h5>Submit New Bid</h5>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-info">
+      <i class="bi bi-info-circle"></i> Your bid must be lower than your previous bid for the same route and load.
+    </div>
+    
+    <%= form_with(model: @bid, local: true, class: "row g-3") do |form| %>
+      <%= form.hidden_field :carrier_id, value: @current_carrier.id %>
+      
+      <div class="col-md-4">
+        <%= form.label :route_id, "Route", class: "form-label" %>
+        <%= form.collection_select :route_id, @routes, :id, ->(route) { "#{route.from} → #{route.to}" }, 
+                                  { prompt: "Select a route" }, 
+                                  { class: "form-select", required: true, 
+                                    data: { controller: "bid-form", action: "change->bid-form#updateMinBid" } } %>
+      </div>
+      
+      <div class="col-md-4">
+        <%= form.label :load_id, "Load Type", class: "form-label" %>
+        <%= form.collection_select :load_id, @loads, :id, ->(load) { load.display_load_type }, 
+                                  { prompt: "Select a load type" }, 
+                                  { class: "form-select", required: true,
+                                    data: { controller: "bid-form", action: "change->bid-form#updateMinBid" } } %>
+      </div>
+      
+      <div class="col-md-4">
+        <%= form.label :amount, "Bid Amount ($)", class: "form-label" %>
+        <div class="input-group">
+          <%= form.number_field :amount, step: 0.01, min: 0.01, class: "form-control", required: true %>
+          <span class="input-group-text" id="min-bid-info" style="display: none;">
+            <i class="bi bi-info-circle"></i> Your previous bid: $<span id="previous-bid-amount">N/A</span>
+          </span>
+          <%= form.submit "Submit Bid", class: "btn btn-primary" %>
+        </div>
+        <small class="text-muted" id="bid-hint">Your bid must be lower than your previous bid for the same route and load.</small>
+      </div>
+      
+      <% if @bid.errors.any? %>
+        <div class="col-12">
+          <div class="alert alert-danger mt-3">
+            <ul class="mb-0">
+              <% @bid.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div> 

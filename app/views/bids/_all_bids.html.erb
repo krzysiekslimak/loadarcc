@@ -1,0 +1,55 @@
+<!-- All Bids by Route-Load Combination -->
+<div class="card">
+  <div class="card-header bg-secondary text-white">
+    <h5>All Current Bids</h5>
+  </div>
+  <div class="card-body">
+    <% if @bids_by_combination.any? %>
+      <div class="accordion" id="bidAccordion">
+        <% @bids_by_combination.each_with_index do |(key, bids), index| %>
+          <% route_id = key[0] %>
+          <% load_id = key[1] %>
+          <% route = Route.find(route_id) %>
+          <% load = Load.find(load_id) %>
+          
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="heading<%= index %>">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= index %>" aria-expanded="false" aria-controls="collapse<%= index %>">
+                <strong><%= route.from %> → <%= route.to %></strong> | <%= load.display_load_type %> | 
+                Best bid: $<%= number_with_precision(bids.first.amount, precision: 2) %> by <%= bids.first.carrier.carrier_name %>
+              </button>
+            </h2>
+            <div id="collapse<%= index %>" class="accordion-collapse collapse" aria-labelledby="heading<%= index %>" data-bs-parent="#bidAccordion">
+              <div class="accordion-body">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Carrier</th>
+                      <th>Amount</th>
+                      <th>Submitted at</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% bids.each_with_index do |bid, bid_index| %>
+                      <tr class="<%= bid.carrier_id == @current_carrier&.id ? 'table-primary' : '' %>">
+                        <td><%= bid_index + 1 %></td>
+                        <td><%= bid.carrier.carrier_name %></td>
+                        <td>$<%= number_with_precision(bid.amount, precision: 2) %></td>
+                        <td><%= bid.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="alert alert-info">
+        No bids have been submitted yet.
+      </div>
+    <% end %>
+  </div>
+</div> 

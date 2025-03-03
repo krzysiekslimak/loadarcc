@@ -1,0 +1,108 @@
+<!-- Current Carrier's Bids -->
+<div class="card mb-4">
+  <div class="card-header bg-success text-white">
+    <h5>Your Current Bids</h5>
+  </div>
+  <div class="card-body">
+    <% if @current_carrier_bids.any? %>
+      <% # Grupujemy oferty według kombinacji trasy i ładunku %>
+      <% carrier_bids_by_combination = {} %>
+      <% @current_carrier_bids.each do |bid| %>
+        <% key = [bid.route_id, bid.load_id] %>
+        <% carrier_bids_by_combination[key] ||= [] %>
+        <% carrier_bids_by_combination[key] << bid %>
+      <% end %>
+      
+      <div class="accordion" id="carrierBidAccordion">
+        <% carrier_bids_by_combination.each_with_index do |(key, bids), index| %>
+          <% route_id = key[0] %>
+          <% load_id = key[1] %>
+          <% route = Route.find(route_id) %>
+          <% load = Load.find(load_id) %>
+          <% best_bid = Bid.where(route_id: route_id, load_id: load_id).order(amount: :asc).first %>
+          <% your_best_bid = bids.min_by(&:amount) %>
+          <% is_winning = best_bid.id == your_best_bid.id %>
+          
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="carrierHeading<%= index %>">
+              <button class="accordion-button <%= is_winning ? 'collapsed' : '' %>" type="button" 
+                      data-bs-toggle="collapse" data-bs-target="#carrierCollapse<%= index %>" 
+                      aria-expanded="<%= is_winning ? 'false' : 'true' %>" aria-controls="carrierCollapse<%= index %>">
+                <strong><%= route.from %> → <%= route.to %></strong> | <%= load.display_load_type %> | 
+                Your best bid: $<%= number_with_precision(your_best_bid.amount, precision: 2) %> | 
+                <% if is_winning %>
+                  <span class="badge bg-success ms-2">Best Bid!</span>
+                <% else %>
+                  <span class="badge bg-warning ms-2">Not winning ($<%= number_with_precision(best_bid.amount, precision: 2) %>)</span>
+                <% end %>
+              </button>
+            </h2>
+            <div id="carrierCollapse<%= index %>" class="accordion-collapse collapse <%= is_winning ? '' : 'show' %>" 
+                 aria-labelledby="carrierHeading<%= index %>" data-bs-parent="#carrierBidAccordion">
+              <div class="accordion-body">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Submitted at</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% bids.sort_by(&:amount).each do |bid| %>
+                      <tr class="<%= bid.id == best_bid.id ? 'table-success' : '' %>">
+                        <td>$<%= number_with_precision(bid.amount, precision: 2) %></td>
+                        <td>
+                          <% if bid.id == best_bid.id %>
+                            <span class="badge bg-success">Best Bid!</span>
+                          <% else %>
+                            <span class="badge bg-warning">Not winning</span>
+                          <% end %>
+                        </td>
+                        <td><%= bid.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+                
+                <!-- Formularz do składania nowej oferty -->
+                <div class="mt-3">
+                  <h6>Submit a better bid:</h6>
+                  <%= form_with(model: Bid.new, local: true, class: "row g-2") do |form| %>
+                    <%= form.hidden_field :carrier_id, value: @current_carrier.id %>
+                    <%= form.hidden_field :route_id, value: route_id %>
+                    <%= form.hidden_field :load_id, value: load_id %>
+                    
+                    <div class="col-md-6">
+                      <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <%= form.number_field :amount, 
+                                             step: 0.01, 
+                                             min: 0.01, 
+                                             max: best_bid.amount - 0.01,
+                                             placeholder: "Enter amount lower than #{number_with_precision(best_bid.amount, precision: 2)}", 
+                                             class: "form-control" %>
+                        <%= form.submit "Submit Bid", class: "btn btn-primary" %>
+                      </div>
+                      <small class="text-muted">
+                        <% if is_winning %>
+                          You have the best bid! But you can still lower it if you want.
+                        <% else %>
+                          Current best bid: $<%= number_with_precision(best_bid.amount, precision: 2) %> by <%= best_bid.carrier.carrier_name %>
+                        <% end %>
+                      </small>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="alert alert-info">
+        You haven't submitted any bids yet.
+      </div>
+    <% end %>
+  </div>
+</div> 

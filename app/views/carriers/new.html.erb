@@ -1,0 +1,24 @@
+<h1>New Carrier</h1>
+
+<%= form_with(model: @carrier, local: true) do |form| %>
+  <% if @carrier.errors.any? %>
+    <div class="alert alert-danger">
+      <h2><%= pluralize(@carrier.errors.count, "error") %> prohibited this carrier from being saved:</h2>
+      <ul>
+        <% @carrier.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.label :carrier_name %>
+    <%= form.text_field :carrier_name, class: "form-control" %>
+  </div>
+
+  <div class="actions mt-3">
+    <%= form.submit "Create Carrier", class: "btn btn-primary" %>
+    <%= link_to "Back", carriers_path, class: "btn btn-secondary" %>
+  </div>
+<% end %>

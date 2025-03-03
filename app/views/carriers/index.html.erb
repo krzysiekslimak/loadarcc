@@ -1,0 +1,24 @@
+<h1>Carriers</h1>
+
+<div class="mb-4">
+  <%= link_to "New Carrier", new_carrier_path, class: "btn btn-primary" %>
+</div>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @carriers.each do |carrier| %>
+      <tr>
+        <td><%= carrier.carrier_name %></td>
+        <td>
+          <%= link_to "Select as current carrier", bids_path(carrier_id: carrier.id), class: "btn btn-sm btn-success" %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
